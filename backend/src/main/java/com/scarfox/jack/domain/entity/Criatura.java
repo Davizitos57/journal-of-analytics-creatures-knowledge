@@ -1,7 +1,7 @@
 package com.scarfox.jack.domain.entity;
 
-import com.scarfox.jack.enums.Elemento;
-import com.scarfox.jack.enums.Tamanho;
+import com.scarfox.jack.domain.enums.Elemento;
+import com.scarfox.jack.domain.enums.Tamanho;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,11 +42,10 @@ public class Criatura {
     @Column(name = "elemento")
     private Set<Elemento> elementosSecundarios = new HashSet<>();
 
-    public Criatura(
-            String nome,
-            Tamanho tamanho,
-            Elemento elementoPrincipal
-    ) {
+    @ManyToMany(mappedBy = "criaturas")
+    private Set<Ocorrencia> ocorrencias = new HashSet<>();
+
+    public Criatura(String nome, Tamanho tamanho, Elemento elementoPrincipal) {
         this.nome = nome;
         this.tamanho = tamanho;
         this.elementoPrincipal = elementoPrincipal;

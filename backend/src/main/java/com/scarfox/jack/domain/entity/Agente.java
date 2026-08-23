@@ -1,6 +1,6 @@
 package com.scarfox.jack.domain.entity;
 
-import com.scarfox.jack.enums.Patente;
+import com.scarfox.jack.domain.enums.Patente;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,8 +42,7 @@ public class Agente {
     @JoinColumn(name = "equipe_uuid")
     private Equipe equipe;
 
-    @OneToMany
-    @JoinColumn(name = "historico_ocorrencia_uuid")
+    @OneToMany(mappedBy = "agente")
     private List<HistoricoOcorrencia> historicoOcorrencias = new ArrayList<>();
 
     public Agente(String nome, String email, String senha, String nacionalidade, LocalDate dataNascimento, Patente patente) {

@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-//import com.scarfox.jack.domain.entity.Ocorrencia;
-
 @Getter
 @Entity
 @Table(name = "historico_ocorrencias")
@@ -36,16 +34,16 @@ public class HistoricoOcorrencia {
     @JoinColumn(name = "agente_id", nullable = false)
     private Agente agente;
 
-    //@ManyToOne
-    //@JoinColumn(name = "ocorrencia_id", nullable = false)
-    //private Ocorrencia ocorrencia;
+    @ManyToOne
+    @JoinColumn(name = "ocorrencia_id", nullable = false)
+    private Ocorrencia ocorrencia;
 
     public HistoricoOcorrencia(
             String campoAlterado,
             String valorAnterior,
             String valorNovo,
-            Agente agente
-            //Ocorrencia ocorrencia
+            Agente agente,
+            Ocorrencia ocorrencia
     ) {
 
         this.dataHora = LocalDateTime.now();
@@ -53,6 +51,6 @@ public class HistoricoOcorrencia {
         this.valorAnterior = valorAnterior;
         this.valorNovo = valorNovo;
         this.agente = agente;
-        //this.ocorrencia = ocorrencia;
+        this.ocorrencia = ocorrencia;
     }
 }

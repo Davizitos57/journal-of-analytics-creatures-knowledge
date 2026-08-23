@@ -1,11 +1,13 @@
 package com.scarfox.jack.domain.entity;
 
-import com.scarfox.jack.enums.Elemento;
+import com.scarfox.jack.domain.enums.Elemento;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -23,13 +25,16 @@ public class Ritual {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Elemento elementos;
+    private Elemento elemento;
 
     private String descricao;
 
-    public Ritual(String nome, Elemento elementos, String descricao) {
+    @ManyToMany(mappedBy = "rituais")
+    private Set<Ocorrencia> ocorrencias = new HashSet<>();
+
+    public Ritual(String nome, Elemento elemento, String descricao) {
         this.nome = nome;
-        this.elementos = elementos;
+        this.elemento = elemento;
         this.descricao = descricao;
     }
 }
