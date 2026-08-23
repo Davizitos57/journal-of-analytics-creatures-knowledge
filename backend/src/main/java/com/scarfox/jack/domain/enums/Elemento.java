@@ -1,4 +1,4 @@
-package com.scarfox.jack.enums;
+package com.scarfox.jack.domain.enums;
 
 public enum Elemento {
     SANGUE,
