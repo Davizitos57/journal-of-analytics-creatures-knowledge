@@ -36,6 +36,10 @@ public class Agente {
     @Enumerated(EnumType.STRING)
     private Patente patente;
 
+    @ManyToOne
+    @JoinColumn(name = "equipe_uuid")
+    private Equipe equipe;
+
     public Agente(String nome, String email, String senha, String nacionalidade, LocalDate dataNascimento, Patente patente) {
         this.nome = nome;
         this.email = email;
