@@ -3,15 +3,15 @@ spring:
     name: jack
   
   datasource:
-    url: jdbc:postgresql://localhost:5432/jackdb
-    username: postgres
-    password: Sc4rFox57
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
