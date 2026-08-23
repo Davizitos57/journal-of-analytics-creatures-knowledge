@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -39,6 +41,10 @@ public class Agente {
     @ManyToOne
     @JoinColumn(name = "equipe_uuid")
     private Equipe equipe;
+
+    @OneToMany
+    @JoinColumn(name = "historico_ocorrencia_uuid")
+    private List<HistoricoOcorrencia> historicoOcorrencias = new ArrayList<>();
 
     public Agente(String nome, String email, String senha, String nacionalidade, LocalDate dataNascimento, Patente patente) {
         this.nome = nome;
