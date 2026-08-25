@@ -35,6 +35,9 @@ public class Agente {
     @Column(name = "data_nascimento")
     private LocalDate dataNascimento;
 
+    @Column(name = "foto_url")
+    private String fotoUrl;
+
     @Enumerated(EnumType.STRING)
     private Patente patente;
 

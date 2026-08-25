@@ -29,6 +29,9 @@ public class Ritual {
 
     private String descricao;
 
+    @Column(name = "foto_url")
+    private String fotoUrl;
+
     @ManyToMany(mappedBy = "rituais")
     private Set<Ocorrencia> ocorrencias = new HashSet<>();
 

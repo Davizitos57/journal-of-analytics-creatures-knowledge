@@ -29,6 +29,9 @@ public class Criatura {
     @Column(nullable = false)
     private Tamanho tamanho;
 
+    @Column(name = "foto_url")
+    private String fotoUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "elemento_principal", nullable = false)
     private Elemento elementoPrincipal;
