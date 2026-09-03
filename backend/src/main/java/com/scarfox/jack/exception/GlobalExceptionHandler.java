@@ -20,4 +20,17 @@ public class GlobalExceptionHandler {
 
         return problema;
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail tratarArgumentoInvalido(
+        IllegalArgumentException exception) {
+
+        ProblemDetail problema =
+            ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+
+        problema.setTitle("Requisição inválida");
+        problema.setDetail(exception.getMessage());
+
+        return problema;
+    }
 }
