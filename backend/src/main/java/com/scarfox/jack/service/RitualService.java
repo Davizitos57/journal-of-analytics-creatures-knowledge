@@ -27,7 +27,16 @@ public class RitualService {
     }
 
     @Transactional(readOnly = true)
-    public List<Ritual> listarTodos() {
+    public List<Ritual> listarTodos(String nome, Elemento elemento) {
+        if (nome != null && !nome.isBlank() && elemento != null) {
+            return ritualRepository.findByNomeContainingIgnoreCaseAndElemento(nome.trim(),elemento);
+            }
+            if (nome != null && !nome.isBlank()) {
+                return ritualRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(nome.trim());
+            }
+            if (elemento != null) {
+                return ritualRepository.findByElemento(elemento);
+            }
         return ritualRepository.findAll();
     }
 
@@ -45,9 +54,7 @@ public class RitualService {
         if (termo == null || termo.trim().length() < 2) {
             return List.of();
         }
-
-        return ritualRepository
-            .findByNomeContainingIgnoreCaseOrderByNomeAsc(termo.trim());
+        return ritualRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(termo.trim());
     }
 
     @Transactional(readOnly = true)
