@@ -26,21 +26,17 @@ public class Criatura {
     private String nome;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Tamanho tamanho;
 
     @Column(name = "foto_url")
     private String fotoUrl;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "elemento_principal", nullable = false)
+    @Column(name = "elemento_principal")
     private Elemento elementoPrincipal;
 
     @ElementCollection
-    @CollectionTable(
-            name = "criatura_elementos_secundarios",
-            joinColumns = @JoinColumn(name = "criatura_uuid")
-    )
+    @CollectionTable(name = "criatura_elementos_secundarios", joinColumns = @JoinColumn(name = "criatura_uuid"))
     @Enumerated(EnumType.STRING)
     @Column(name = "elemento")
     private Set<Elemento> elementosSecundarios = new HashSet<>();
