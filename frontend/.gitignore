@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.angular
+out-tsc
+coverage
 *.local
 
 # Editor directories and files

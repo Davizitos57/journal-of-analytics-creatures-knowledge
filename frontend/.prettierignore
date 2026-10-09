@@ -2,7 +2,4 @@ node_modules
 dist
 .angular
 coverage
-.idea
-.git
-*.log
-.env
+package-lock.json
