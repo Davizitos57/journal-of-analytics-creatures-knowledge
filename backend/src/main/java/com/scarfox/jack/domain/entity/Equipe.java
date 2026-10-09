@@ -1,5 +1,6 @@
 package com.scarfox.jack.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,7 @@ public class Equipe {
 
     private String descricao;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "equipe")
     private List<Agente> agentes = new ArrayList<>();
 

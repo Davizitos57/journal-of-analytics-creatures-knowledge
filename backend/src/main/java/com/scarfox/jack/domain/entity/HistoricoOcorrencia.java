@@ -1,5 +1,6 @@
 package com.scarfox.jack.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,6 +35,7 @@ public class HistoricoOcorrencia {
     @JoinColumn(name = "agente_id", nullable = false)
     private Agente agente;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "ocorrencia_id", nullable = false)
     private Ocorrencia ocorrencia;

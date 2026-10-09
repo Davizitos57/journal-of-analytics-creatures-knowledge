@@ -1,5 +1,6 @@
 package com.scarfox.jack.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.scarfox.jack.domain.enums.Elemento;
 import com.scarfox.jack.domain.enums.Tamanho;
 import jakarta.persistence.*;
@@ -41,6 +42,7 @@ public class Criatura {
     @Column(name = "elemento")
     private Set<Elemento> elementosSecundarios = new HashSet<>();
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "criaturas")
     private Set<Ocorrencia> ocorrencias = new HashSet<>();
 

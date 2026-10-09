@@ -1,5 +1,7 @@
 package com.scarfox.jack.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scarfox.jack.domain.enums.Patente;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -27,6 +29,7 @@ public class Agente {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable=false)
     private String senha;
 
@@ -45,6 +48,7 @@ public class Agente {
     @JoinColumn(name = "equipe_uuid")
     private Equipe equipe;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "agente")
     private List<HistoricoOcorrencia> historicoOcorrencias = new ArrayList<>();
 

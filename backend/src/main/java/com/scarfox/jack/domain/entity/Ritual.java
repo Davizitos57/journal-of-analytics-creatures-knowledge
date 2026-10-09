@@ -1,5 +1,6 @@
 package com.scarfox.jack.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.scarfox.jack.domain.enums.Elemento;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,6 +33,7 @@ public class Ritual {
     @Column(name = "foto_url")
     private String fotoUrl;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "rituais")
     private Set<Ocorrencia> ocorrencias = new HashSet<>();
 
