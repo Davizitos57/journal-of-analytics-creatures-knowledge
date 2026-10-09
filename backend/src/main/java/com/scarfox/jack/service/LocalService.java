@@ -1,6 +1,7 @@
 package com.scarfox.jack.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -42,7 +43,9 @@ public class LocalService {
             throw new IllegalArgumentException("O país deve ser informado.");
         }
         local.setPais(local.getPais().trim());
-
+        if (local.getCodigoPostal() != null) {
+            local.setCodigoPostal(local.getCodigoPostal().trim());
+        }
         return localRepository.save(local);
     }
 
@@ -59,75 +62,79 @@ public class LocalService {
         return localRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(nome.trim());
     }
 
-    @Transactional(readOnly=true)
-    public List<String> listarPaises(){
-        return localRepository.findAllByOrderByPaisAsc()
-            .stream()
-            .map(Local::getPais)
-            .distinct()
-            .toList();
+    @Transactional(readOnly = true)
+    public List<String> listarPaises() {
+        return localRepository.findAllByOrderByPaisAsc().stream().map(Local::getPais).filter(Objects::nonNull).filter(pais -> !pais.isBlank()).distinct().toList();
     }
 
-    @Transactional(readOnly=true)
+    @Transactional(readOnly = true)
     public List<String> listarEstados(String pais) {
         return localRepository.findByPaisIgnoreCaseOrderByEstadoProvinciaAsc(pais)
             .stream()
             .map(Local::getEstadoProvincia)
+            .filter(Objects::nonNull)
+            .filter(estado -> !estado.isBlank())
             .distinct()
             .toList();
     }
 
-    @Transactional(readOnly=true)
+    @Transactional(readOnly = true)
     public List<String> listarCidades(String pais, String estadoProvincia) {
         return localRepository.findByPaisIgnoreCaseAndEstadoProvinciaIgnoreCaseOrderByCidadeAsc(pais, estadoProvincia)
             .stream()
             .map(Local::getCidade)
+            .filter(Objects::nonNull)
+            .filter(cidade -> !cidade.isBlank())
             .distinct()
             .toList();
     }
 
-    @Transactional(readOnly=true)
-        public List<String> listarBairros(String pais, String estadoProvincia, String cidade) {
+    @Transactional(readOnly = true)
+    public List<String> listarBairros(String pais, String estadoProvincia, String cidade) {
         return localRepository.findByPaisIgnoreCaseAndEstadoProvinciaIgnoreCaseAndCidadeIgnoreCaseOrderByBairroAsc(pais, estadoProvincia, cidade)
             .stream()
             .map(Local::getBairro)
+            .filter(Objects::nonNull)
+            .filter(bairro -> !bairro.isBlank())
             .distinct()
             .toList();
     }
 
-    @Transactional(readOnly=true)
-        public List<String> listarRuas(String pais, String estadoProvincia, String cidade, String bairro) {
+    @Transactional(readOnly = true)
+    public List<String> listarRuas(String pais, String estadoProvincia, String cidade, String bairro) {
         return localRepository.findByPaisIgnoreCaseAndEstadoProvinciaIgnoreCaseAndCidadeIgnoreCaseAndBairroIgnoreCaseOrderByRuaAsc(pais, estadoProvincia, cidade, bairro)
             .stream()
             .map(Local::getRua)
+            .filter(Objects::nonNull)
+            .filter(rua -> !rua.isBlank())
             .distinct()
             .toList();
     }
 
-    @Transactional(readOnly=true)
-    public Local buscarPorID(UUID uuid){
+    @Transactional(readOnly = true)
+    public Local buscarPorID(UUID uuid) {
         return localRepository.findById(uuid)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum local encontrado com o ID: " + uuid));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum local encontrado com o ID: " + uuid));
     }
 
     @Transactional
-    public Local atualizarLocal(UUID uuid, Local novosDados){
+    public Local atualizarLocal(UUID uuid, Local novosDados) {
         Local localAtual = localRepository.findById(uuid)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum local encontrado com o ID: " + uuid));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum local encontrado com o ID: " + uuid));
         updateData(localAtual, novosDados);
         return localAtual;
     }
 
     @Transactional
-    public void deletar(UUID uuid){
+    public void deletar(UUID uuid) {
         Local local = localRepository.findById(uuid)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum local encontrado com o ID: " + uuid));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum local encontrado com o ID: " + uuid));
         localRepository.delete(local);
     }
 
     private void updateData(Local localAtual, Local local) {
         if (local.getNome() != null) {
-            if(local.getNome().isBlank()){
+            if (local.getNome().isBlank()) {
                 throw new IllegalArgumentException("O nome do local não pode ficar vazio");
             }
             localAtual.setNome(local.getNome().trim());
@@ -142,16 +149,20 @@ public class LocalService {
             localAtual.setCidade(local.getCidade().trim());
         }
         if (local.getEstadoProvincia() != null) {
-            localAtual.setEstadoProvincia(local.getEstadoProvincia().trim());
+            localAtual.setEstadoProvincia(
+                    local.getEstadoProvincia().trim()
+            );
         }
         if (local.getPais() != null) {
-            if(local.getPais().isBlank()){
-                throw new IllegalArgumentException("O pais não pode ficar vazio");
+            if (local.getPais().isBlank()) {
+                throw new IllegalArgumentException("O país não pode ficar vazio");
             }
             localAtual.setPais(local.getPais().trim());
         }
         if (local.getCodigoPostal() != null) {
-            localAtual.setCodigoPostal(local.getCodigoPostal().trim());
+            localAtual.setCodigoPostal(
+                    local.getCodigoPostal().trim()
+            );
         }
     }
 }
