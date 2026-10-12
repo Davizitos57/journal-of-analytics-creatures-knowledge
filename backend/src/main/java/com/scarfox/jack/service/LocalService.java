@@ -64,14 +64,14 @@ public class LocalService {
 
     @Transactional(readOnly = true)
     public List<String> listarPaises() {
-        return localRepository.findAllByOrderByPaisAsc().stream().map(Local::getPais).filter(Objects::nonNull).filter(pais -> !pais.isBlank()).distinct().toList();
+        return localRepository.findAllByOrderByPaisAsc().stream().map(local -> local.getPais()).filter(Objects::nonNull).filter(pais -> !pais.isBlank()).distinct().toList();
     }
 
     @Transactional(readOnly = true)
     public List<String> listarEstados(String pais) {
         return localRepository.findByPaisIgnoreCaseOrderByEstadoProvinciaAsc(pais)
             .stream()
-            .map(Local::getEstadoProvincia)
+            .map(local -> local.getEstadoProvincia())
             .filter(Objects::nonNull)
             .filter(estado -> !estado.isBlank())
             .distinct()
@@ -82,7 +82,7 @@ public class LocalService {
     public List<String> listarCidades(String pais, String estadoProvincia) {
         return localRepository.findByPaisIgnoreCaseAndEstadoProvinciaIgnoreCaseOrderByCidadeAsc(pais, estadoProvincia)
             .stream()
-            .map(Local::getCidade)
+            .map(local -> local.getCidade())
             .filter(Objects::nonNull)
             .filter(cidade -> !cidade.isBlank())
             .distinct()
@@ -93,7 +93,7 @@ public class LocalService {
     public List<String> listarBairros(String pais, String estadoProvincia, String cidade) {
         return localRepository.findByPaisIgnoreCaseAndEstadoProvinciaIgnoreCaseAndCidadeIgnoreCaseOrderByBairroAsc(pais, estadoProvincia, cidade)
             .stream()
-            .map(Local::getBairro)
+            .map(local -> local.getBairro())
             .filter(Objects::nonNull)
             .filter(bairro -> !bairro.isBlank())
             .distinct()
@@ -104,7 +104,7 @@ public class LocalService {
     public List<String> listarRuas(String pais, String estadoProvincia, String cidade, String bairro) {
         return localRepository.findByPaisIgnoreCaseAndEstadoProvinciaIgnoreCaseAndCidadeIgnoreCaseAndBairroIgnoreCaseOrderByRuaAsc(pais, estadoProvincia, cidade, bairro)
             .stream()
-            .map(Local::getRua)
+            .map(local -> local.getRua())
             .filter(Objects::nonNull)
             .filter(rua -> !rua.isBlank())
             .distinct()
