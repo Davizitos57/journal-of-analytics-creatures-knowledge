@@ -8,6 +8,6 @@ import java.util.UUID;
 
 public interface EquipeRepository extends JpaRepository<Equipe, UUID> {
     boolean existsByNomeIgnoreCase(String nome);
-    List<Equipe> findByNomeContainingIgnoreCaseOrderByNomeAsc(String termo);
+    List<Equipe> findByNomeContainingIgnoreCaseOrderByNomeAsc(String nome);
     boolean existsByNomeIgnoreCaseAndUuidNot(String nome, UUID uuid);
 }

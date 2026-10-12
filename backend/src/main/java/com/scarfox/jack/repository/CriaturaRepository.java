@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public interface CriaturaRepository extends JpaRepository<Criatura, UUID>, JpaSpecificationExecutor<Criatura> {
     List<Criatura> findByNomeIgnoreCase(String nome);
-    List<Criatura> findByNomeContainingIgnoreCaseOrderByNomeAsc(String termo);
+    List<Criatura> findByNomeContainingIgnoreCaseOrderByNomeAsc(String nome);
     List<Criatura> findByElementoPrincipal(Elemento elemento);
     List<Criatura> findByElementosSecundariosContaining(Elemento elemento);
     @Query("SELECT c FROM Criatura c JOIN c.elementosSecundarios e WHERE e IN :elementos GROUP BY c HAVING COUNT(DISTINCT e) = :quantidade")

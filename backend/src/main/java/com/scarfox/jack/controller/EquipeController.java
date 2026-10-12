@@ -36,8 +36,8 @@ public class EquipeController {
     }
 
     @GetMapping("/pesquisar/nome")
-    public ResponseEntity<List<Equipe>> pesquisarPorNome(@RequestParam String termo){
-        return ResponseEntity.ok(equipeService.pesquisarPorNome(termo));
+    public ResponseEntity<List<Equipe>> pesquisarPorNome(@RequestParam String nome){
+        return ResponseEntity.ok(equipeService.pesquisarPorNome(nome));
     }
 
     @PatchMapping("/{uuid}")

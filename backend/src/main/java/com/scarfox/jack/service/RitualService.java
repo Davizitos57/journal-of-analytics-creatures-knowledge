@@ -50,11 +50,11 @@ public class RitualService {
     }
 
     @Transactional(readOnly = true)
-    public List<Ritual> pesquisarPorNome(String termo) {
-        if (termo == null || termo.trim().length() < 2) {
+    public List<Ritual> pesquisarPorNome(String nome) {
+        if (nome == null || nome.trim().length() < 2) {
             return List.of();
         }
-        return ritualRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(termo.trim());
+        return ritualRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(nome.trim());
     }
 
     @Transactional(readOnly = true)

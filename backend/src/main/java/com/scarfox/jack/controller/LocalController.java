@@ -45,8 +45,8 @@ public class LocalController {
     }
 
     @GetMapping("/pesquisar/nome")
-    public ResponseEntity<List<Local>> pesquisarPorNome(@RequestParam String termo) {
-        return ResponseEntity.ok(localService.pesquisarPorNome(termo));
+    public ResponseEntity<List<Local>> pesquisarPorNome(@RequestParam String nome) {
+        return ResponseEntity.ok(localService.pesquisarPorNome(nome));
     }
 
     @GetMapping("/paises")

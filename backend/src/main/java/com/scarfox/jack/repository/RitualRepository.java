@@ -12,7 +12,7 @@ import com.scarfox.jack.domain.enums.Elemento;
 public interface RitualRepository extends JpaRepository<Ritual, UUID> {
 
     Optional<Ritual> findByNomeIgnoreCase(String nome);
-    List<Ritual> findByNomeContainingIgnoreCaseOrderByNomeAsc(String termo);
+    List<Ritual> findByNomeContainingIgnoreCaseOrderByNomeAsc(String nome);
     List<Ritual> findByElemento(Elemento elemento);
     List<Ritual> findByNomeContainingIgnoreCaseAndElemento(String nome, Elemento elemento);
 }

@@ -40,8 +40,8 @@ public class CriaturaController {
     }
 
     @GetMapping("/pesquisar/nome")
-    public ResponseEntity<List<Criatura>> pesquisarPorNome(@RequestParam String termo){
-        return ResponseEntity.ok(criaturaService.pesquisarPorNome(termo));
+    public ResponseEntity<List<Criatura>> pesquisarPorNome(@RequestParam String nome){
+        return ResponseEntity.ok(criaturaService.pesquisarPorNome(nome));
     }
 
     @GetMapping("/pesquisar/tamanho")

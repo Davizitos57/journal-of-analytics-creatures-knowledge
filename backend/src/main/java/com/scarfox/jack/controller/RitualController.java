@@ -47,8 +47,8 @@ public class RitualController {
     }
 
     @GetMapping("/pesquisar/nome")
-    public ResponseEntity<List<Ritual>> pesquisarPorNome(@RequestParam String termo){
-        return ResponseEntity.ok(ritualService.pesquisarPorNome(termo));
+    public ResponseEntity<List<Ritual>> pesquisarPorNome(@RequestParam String nome){
+        return ResponseEntity.ok(ritualService.pesquisarPorNome(nome));
     }
 
     @GetMapping("/{uuid}")

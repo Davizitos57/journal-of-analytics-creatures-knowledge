@@ -46,11 +46,11 @@ public class EquipeService {
     }
 
     @Transactional(readOnly = true)
-    public List<Equipe> pesquisarPorNome(String termo){
-        if (termo == null || termo.trim().length() < 2){
+    public List<Equipe> pesquisarPorNome(String nome){
+        if (nome == null || nome.trim().length() < 2){
             return List.of();
         }
-        return equipeRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(termo.trim());
+        return equipeRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(nome.trim());
     }
 
     @Transactional

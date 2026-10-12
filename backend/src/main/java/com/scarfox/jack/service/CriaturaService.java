@@ -65,11 +65,11 @@ public class CriaturaService {
     }
 
     @Transactional(readOnly = true)
-    public List<Criatura> pesquisarPorNome(String termo){
-        if (termo == null || termo.trim().length() < 2){
+    public List<Criatura> pesquisarPorNome(String nome){
+        if (nome == null || nome.trim().length() < 2){
             return List.of();
         }
-        return criaturaRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(termo.trim());
+        return criaturaRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(nome.trim());
     }
 
     @Transactional(readOnly = true)
