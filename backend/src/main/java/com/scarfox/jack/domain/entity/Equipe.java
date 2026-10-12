@@ -20,7 +20,7 @@ public class Equipe {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID uuid;
 
-    @Column(nullable=false)
+    @Column(nullable=false, unique = true)
     private String nome;
 
     private String descricao;
