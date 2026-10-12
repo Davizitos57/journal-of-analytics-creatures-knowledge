@@ -89,14 +89,6 @@ public class CriaturaService {
     }
 
     @Transactional(readOnly = true)
-    public List<Criatura> buscarPorElementoSecundario(Elemento elemento) {
-        if (elemento == null) {
-            throw new IllegalArgumentException("O elemento secundário deve ser informado.");
-        }
-        return criaturaRepository.findByElementosSecundariosContaining(elemento);
-    }
-
-    @Transactional(readOnly = true)
     public List<Criatura> buscarPorElementosSecundarios(Set<Elemento> elementos) {
         if (elementos == null || elementos.isEmpty()) {
             return List.of();

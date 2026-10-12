@@ -54,11 +54,6 @@ public class CriaturaController {
         return ResponseEntity.ok(criaturaService.buscarPorElementoPrincipal(elemento));
     }
 
-    @GetMapping("/pesquisar/secundario/elemento")
-    public ResponseEntity<List<Criatura>> pesquisarPorElementoSecundario(@RequestParam Elemento elemento){
-        return ResponseEntity.ok(criaturaService.buscarPorElementoSecundario(elemento));
-    }
-
     @GetMapping("/pesquisar/secundario/elementos")
     public ResponseEntity<List<Criatura>> pesquisarPorElementosSecundarios(@RequestParam Set<Elemento> elementos){
         return ResponseEntity.ok(criaturaService.buscarPorElementosSecundarios(elementos));
