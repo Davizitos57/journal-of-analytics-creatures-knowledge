@@ -1,12 +1,16 @@
 package com.scarfox.jack.service;
 
 import com.scarfox.jack.config.KeycloakAdminProperties;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.List;
@@ -55,13 +59,19 @@ public class KeycloakAdminService {
             ))
         );
 
-        ResponseEntity<Void> resposta = restClient.post()
-            .uri("/admin/realms/{realm}/users", properties.realm())
-            .headers(headers -> headers.setBearerAuth(obterTokenAdministrativo()))
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(usuario)
-            .retrieve()
-            .toBodilessEntity();
+        ResponseEntity<Void> resposta;
+
+        try {
+            resposta = restClient.post()
+                .uri("/admin/realms/{realm}/users", properties.realm())
+                .headers(headers -> headers.setBearerAuth(obterTokenAdministrativo()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(usuario)
+                .retrieve()
+                .toBodilessEntity();
+        } catch (HttpClientErrorException.Conflict erro) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma conta cadastrada com esse email ou nome de usuário.", erro);
+        }
 
         URI location = resposta.getHeaders().getLocation();
 
@@ -70,5 +80,13 @@ public class KeycloakAdminService {
         }
 
         return location.getPath().substring(location.getPath().lastIndexOf('/') + 1);
+    }
+
+    public void excluirUsuario(String keycloakId) {
+        restClient.delete()
+            .uri("/admin/realms/{realm}/users/{id}", properties.realm(), keycloakId)
+            .headers(headers -> headers.setBearerAuth(obterTokenAdministrativo()))
+            .retrieve()
+            .toBodilessEntity();
     }
 }
