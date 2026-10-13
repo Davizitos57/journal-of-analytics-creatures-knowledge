@@ -88,8 +88,14 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+
       KEYCLOAK_ISSUER_URI: http://localhost:${KEYCLOAK_PORT}/realms/jack
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/jack/protocol/openid-connect/certs
+      
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ADMIN_URL: http://keycloak:8080
+      KEYCLOAK_REALM: jack
 
     ports:
       - "${BACKEND_PORT}:8080"
