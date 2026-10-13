@@ -25,10 +25,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail tratarArgumentoInvalido(IllegalArgumentException exception) {
-        ProblemDetail problema = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        exception.printStackTrace();
 
+        ProblemDetail problema = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problema.setTitle("Requisição inválida");
-        problema.setDetail(exception.getMessage());
+        problema.setDetail(exception.getMessage() != null ? exception.getMessage() : "Erro de argumento sem mensagem.");
 
         return problema;
     }
