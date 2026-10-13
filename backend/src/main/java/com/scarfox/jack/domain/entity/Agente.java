@@ -1,7 +1,6 @@
 package com.scarfox.jack.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scarfox.jack.domain.enums.Patente;
 import jakarta.persistence.*;
 import lombok.Getter;
