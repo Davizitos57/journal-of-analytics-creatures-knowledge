@@ -28,6 +28,53 @@ services:
     networks:
       - jack-network
 
+  jack-keycloak-db:
+    image: postgres:17-alpine
+    container_name: jack-keycloak-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${KEYCLOAK_DB_NAME}
+      POSTGRES_USER: ${KEYCLOAK_DB_USER}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+
+    volumes:
+      - keycloak-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - jack-network
+  
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.0
+    container_name: jack-keycloak
+    restart: unless-stopped
+    command: start-dev
+
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://jack-keycloak-db:5432/${KEYCLOAK_DB_NAME}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT}
+
+    ports:
+      - "127.0.0.1:${KEYCLOAK_PORT}:8080"
+
+    depends_on:
+      jack-keycloak-db:
+        condition: service_healthy
+
+    networks:
+      - jack-network
+
   backend:
     build:
       context: ./backend
@@ -41,6 +88,8 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      KEYCLOAK_ISSUER_URI: http://localhost:${KEYCLOAK_PORT}/realms/jack
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/jack/protocol/openid-connect/certs
 
     ports:
       - "${BACKEND_PORT}:8080"
@@ -78,6 +127,7 @@ services:
 
 volumes:
   postgres-data:
+  keycloak-data:
 
 networks:
   jack-network:

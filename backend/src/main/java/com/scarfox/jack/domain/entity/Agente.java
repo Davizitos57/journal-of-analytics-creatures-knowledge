@@ -29,9 +29,8 @@ public class Agente {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Column(nullable=false)
-    private String senha;
+    @Column(name = "keycloak_id", unique = true)
+    private String keycloakId;
 
     private String nacionalidade;
 
@@ -41,6 +40,7 @@ public class Agente {
     @Column(name = "foto_url")
     private String fotoUrl;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Patente patente;
 
@@ -52,10 +52,9 @@ public class Agente {
     @OneToMany(mappedBy = "agente")
     private List<HistoricoOcorrencia> historicoOcorrencias = new ArrayList<>();
 
-    public Agente(String nome, String email, String senha, String nacionalidade, LocalDate dataNascimento, Patente patente) {
+    public Agente(String nome, String email, String nacionalidade, LocalDate dataNascimento, Patente patente) {
         this.nome = nome;
         this.email = email;
-        this.senha = senha;
         this.nacionalidade = nacionalidade;
         this.dataNascimento = dataNascimento;
         this.patente = patente;
