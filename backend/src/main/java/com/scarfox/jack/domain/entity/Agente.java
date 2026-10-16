@@ -43,7 +43,7 @@ public class Agente {
     @Enumerated(EnumType.STRING)
     private Patente patente;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "equipe_uuid")
     private Equipe equipe;
 
