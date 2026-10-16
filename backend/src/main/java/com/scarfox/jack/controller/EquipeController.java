@@ -2,7 +2,9 @@ package com.scarfox.jack.controller;
 
 import com.scarfox.jack.domain.DTOs.AtualizarEquipeDTO;
 import com.scarfox.jack.domain.DTOs.CadastroEquipeDTO;
+import com.scarfox.jack.domain.DTOs.RespostaAgenteDTO;
 import com.scarfox.jack.domain.DTOs.RespostaEquipeDTO;
+import com.scarfox.jack.domain.entity.Agente;
 import com.scarfox.jack.domain.entity.Equipe;
 import com.scarfox.jack.service.EquipeService;
 
@@ -49,6 +51,12 @@ public class EquipeController {
         return ResponseEntity.ok(equipes);
     }
 
+    @GetMapping("/{uuidEquipe}/agentes")
+    public ResponseEntity<List<RespostaAgenteDTO>> verAgentesEquipe(@PathVariable UUID uuidEquipe) {
+        List<RespostaAgenteDTO> agentes = equipeService.listarAgentesDaEquipe(uuidEquipe).stream().map(this::converterAgenteParaResposta).toList();
+        return ResponseEntity.ok(agentes);
+    }
+
     @PatchMapping("/{uuid}")
     public ResponseEntity<RespostaEquipeDTO> atualizarEquipe(@PathVariable UUID uuid, @Valid @RequestBody AtualizarEquipeDTO equipeDTO) {
         Equipe equipe = equipeService.atualizarEquipe(uuid, equipeDTO);
@@ -62,11 +70,25 @@ public class EquipeController {
     }
 
     private RespostaEquipeDTO converterParaResposta(Equipe equipe) {
-    return new RespostaEquipeDTO(
-        equipe.getUuid(),
-        equipe.getNome(),
-        equipe.getDescricao(),
-        Math.toIntExact(equipeService.contarAgentes(equipe.getUuid()))
-    );
-}
+        return new RespostaEquipeDTO(
+            equipe.getUuid(),
+            equipe.getNome(),
+            equipe.getDescricao(),
+            Math.toIntExact(equipeService.contarAgentes(equipe.getUuid()))
+        );
+    }
+
+    private RespostaAgenteDTO converterAgenteParaResposta(Agente agente) {
+        return new RespostaAgenteDTO(
+            agente.getUuid(),
+            agente.getNome(),
+            agente.getEmail(),
+            agente.getNacionalidade(),
+            agente.getDataNascimento(),
+            agente.getFotoUrl(),
+            agente.getPatente(),
+            agente.getEquipe() != null ? agente.getEquipe().getUuid() : null,
+            agente.getEquipe() != null ? agente.getEquipe().getNome() : "Sem equipe"
+        );
+    }
 }

@@ -2,6 +2,7 @@ package com.scarfox.jack.service;
 
 import com.scarfox.jack.domain.DTOs.AtualizarEquipeDTO;
 import com.scarfox.jack.domain.DTOs.CadastroEquipeDTO;
+import com.scarfox.jack.domain.entity.Agente;
 import com.scarfox.jack.domain.entity.Equipe;
 import com.scarfox.jack.exception.RecursoNaoEncontradoException;
 import com.scarfox.jack.repository.AgenteRepository;
@@ -69,6 +70,14 @@ public class EquipeService {
 
         updateData(equipeAtual, equipeDTO);
         return equipeAtual;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Agente> listarAgentesDaEquipe(UUID equipeUUID) {
+        if (!equipeRepository.existsById(equipeUUID)) {
+            throw new RecursoNaoEncontradoException("Nenhuma equipe encontrada com o ID: " + equipeUUID);
+        }
+        return agenteRepository.findByEquipeUuid(equipeUUID);
     }
 
     @Transactional(readOnly = true)

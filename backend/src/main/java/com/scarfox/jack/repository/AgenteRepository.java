@@ -13,4 +13,6 @@ public interface AgenteRepository extends JpaRepository<Agente, UUID>{
     Optional<Agente> findByKeycloakId(String keycloakId);
     boolean existsByEmailIgnoreCase(String email);
     Optional<List<Agente>> findByPatente(Patente patente);
+    long countByEquipeUuid(UUID equipeUUID);
+    List<Agente> findByEquipeUuid(UUID equipeUUID);
 }
