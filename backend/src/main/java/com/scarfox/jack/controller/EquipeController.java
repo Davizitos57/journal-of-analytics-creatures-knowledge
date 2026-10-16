@@ -1,7 +1,13 @@
 package com.scarfox.jack.controller;
 
+import com.scarfox.jack.domain.DTOs.AtualizarEquipeDTO;
+import com.scarfox.jack.domain.DTOs.CadastroEquipeDTO;
+import com.scarfox.jack.domain.DTOs.RespostaEquipeDTO;
 import com.scarfox.jack.domain.entity.Equipe;
 import com.scarfox.jack.service.EquipeService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,29 +26,33 @@ public class EquipeController {
     }
 
     @PostMapping
-    public ResponseEntity<Equipe> criar(@RequestBody Equipe equipe) {
-        Equipe equipeInserida = equipeService.inserir(equipe);
-        return ResponseEntity.status(HttpStatus.CREATED).body(equipeInserida);
+    public ResponseEntity<RespostaEquipeDTO> criar(@Valid @RequestBody CadastroEquipeDTO equipeDTO) {
+        Equipe equipe = equipeService.inserir(equipeDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(converterParaResposta(equipe));
     }
 
     @GetMapping
-    public ResponseEntity<List<Equipe>> listarTodas(){
-        return ResponseEntity.ok(equipeService.listarTodas());
+    public ResponseEntity<List<RespostaEquipeDTO>> listarTodas() {
+        List<RespostaEquipeDTO> equipes = equipeService.listarTodas().stream().map(this::converterParaResposta).toList();
+        return ResponseEntity.ok(equipes);
     }
 
     @GetMapping("/{uuid}")
-    public ResponseEntity<Equipe> buscarPorID(@PathVariable UUID uuid){
-        return ResponseEntity.ok(equipeService.buscarPorId(uuid));
+    public ResponseEntity<RespostaEquipeDTO> buscarPorID(@PathVariable UUID uuid) {
+        Equipe equipe = equipeService.buscarPorId(uuid);
+        return ResponseEntity.ok(converterParaResposta(equipe));
     }
 
     @GetMapping("/pesquisar/nome")
-    public ResponseEntity<List<Equipe>> pesquisarPorNome(@RequestParam String nome){
-        return ResponseEntity.ok(equipeService.pesquisarPorNome(nome));
+    public ResponseEntity<List<RespostaEquipeDTO>> pesquisarPorNome(@RequestParam String nome) {
+        List<RespostaEquipeDTO> equipes = equipeService.pesquisarPorNome(nome).stream().map(this::converterParaResposta).toList();
+        return ResponseEntity.ok(equipes);
     }
 
     @PatchMapping("/{uuid}")
-    public ResponseEntity<Equipe> atualizarEquipe(@PathVariable UUID uuid, @RequestBody Equipe equipe){
-        return ResponseEntity.ok(equipeService.atualizarEquipe(uuid, equipe));
+    public ResponseEntity<RespostaEquipeDTO> atualizarEquipe(@PathVariable UUID uuid, @Valid @RequestBody AtualizarEquipeDTO equipeDTO) {
+        Equipe equipe = equipeService.atualizarEquipe(uuid, equipeDTO);
+        return ResponseEntity.ok(converterParaResposta(equipe));
     }
 
     @DeleteMapping("/{uuid}")
@@ -50,4 +60,13 @@ public class EquipeController {
         equipeService.deletar(uuid);
         return ResponseEntity.noContent().build();
     }
+
+    private RespostaEquipeDTO converterParaResposta(Equipe equipe) {
+    return new RespostaEquipeDTO(
+        equipe.getUuid(),
+        equipe.getNome(),
+        equipe.getDescricao(),
+        Math.toIntExact(equipeService.contarAgentes(equipe.getUuid()))
+    );
+}
 }
