@@ -1,26 +1,34 @@
 package com.scarfox.jack.service;
 
+import com.scarfox.jack.repository.EquipeRepository;
+import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.scarfox.jack.domain.DTOs.AtualizarAgenteDTO;
 import com.scarfox.jack.domain.DTOs.CadastroAgenteDTO;
 import com.scarfox.jack.domain.entity.Agente;
+import com.scarfox.jack.domain.entity.Equipe;
 import com.scarfox.jack.domain.enums.Patente;
+import com.scarfox.jack.exception.RecursoNaoEncontradoException;
 import com.scarfox.jack.repository.AgenteRepository;
 
 @Service 
 public class AgenteService {
     
+    private final EquipeRepository equipeRepository;
     private final AgenteRepository agenteRepository;
     private final KeycloakAdminService keycloakAdminService;
     private final TransactionTemplate transactionTemplate;
 
-    public AgenteService(AgenteRepository agenteRepository, KeycloakAdminService keycloakAdminService, PlatformTransactionManager transactionManager) {
+    public AgenteService(AgenteRepository agenteRepository, KeycloakAdminService keycloakAdminService, PlatformTransactionManager transactionManager, EquipeRepository equipeRepository) {
         this.agenteRepository = agenteRepository;
+        this.equipeRepository = equipeRepository;
         this.keycloakAdminService = keycloakAdminService;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
@@ -67,5 +75,82 @@ public class AgenteService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public List<Agente> listarTodos(){
+        return agenteRepository.findAll();
+    }
 
+    @Transactional(readOnly = true)
+    public Agente buscarPorId(UUID id){
+        return agenteRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Agente> buscarPorPatente(Patente patente){
+        return agenteRepository.findByPatente(patente)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Não há agentes cadastrados com essa patente: " + patente));
+    }
+
+    @Transactional
+    public Agente atualizar(UUID agenteUUID, AtualizarAgenteDTO agenteDTO) {
+        if (agenteDTO == null) {
+            throw new IllegalArgumentException("Os dados do agente devem ser informados.");
+        }
+        Agente agente = agenteRepository.findById(agenteUUID)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + agenteUUID));
+
+        atualizarDados(agente, agenteDTO);
+        return agente;
+    }
+
+    @Transactional 
+    public Agente associarEquipe(UUID agenteUUID, UUID equipeUUID){
+        Agente agente = agenteRepository.findById(agenteUUID)
+                            .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + agenteUUID));
+        Equipe equipe = equipeRepository.findById(equipeUUID) 
+                            .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma equipe encontrada com o ID: " + equipeUUID));
+
+        if (agente.getEquipe() != null && agente.getEquipe().getUuid().equals(equipeUUID)) {
+            return agente;
+        }
+
+        agente.setEquipe(equipe);
+        return agente; 
+    }
+
+    @Transactional
+    public void desvincularEquipe(UUID agenteUUID){
+        Agente agente = agenteRepository.findById(agenteUUID)
+                            .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + agenteUUID));
+        agente.setEquipe(null);
+    }
+
+    @Transactional 
+    public void deletarAgente(UUID agenteUUID){
+        Agente agente = agenteRepository.findById(agenteUUID)
+                            .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + agenteUUID));
+        agenteRepository.delete(agente);
+    }
+
+    private void atualizarDados(Agente agente, AtualizarAgenteDTO agenteDTO) {
+        if (agenteDTO.informouNome()) {
+            if (agenteDTO.getNome() == null || agenteDTO.getNome().isBlank()) {
+                throw new IllegalArgumentException("O nome do agente não pode estar vazio.");
+            }
+            agente.setNome(agenteDTO.getNome().trim());
+        }
+
+        if (agenteDTO.informouNacionalidade()) {
+            agente.setNacionalidade(agenteDTO.getNacionalidade() == null ? null : agenteDTO.getNacionalidade().trim());
+        }
+
+        if (agenteDTO.informouDataNascimento()) {
+            agente.setDataNascimento(agenteDTO.getDataNascimento());
+        }
+
+        if (agenteDTO.informouFotoUrl()) {
+            agente.setFotoUrl(agenteDTO.getFotoUrl() == null ? null : agenteDTO.getFotoUrl().trim());
+        }
+    }
 }
