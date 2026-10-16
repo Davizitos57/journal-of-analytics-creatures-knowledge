@@ -5,12 +5,14 @@ import java.util.UUID;
 
 import com.scarfox.jack.domain.enums.Patente;
 
-public record RespostaAgenteDTO(   
+public record RespostaAgenteDTO(
     UUID uuid,
     String nome,
     String email,
     String nacionalidade,
     LocalDate dataNascimento,
     String fotoUrl,
-    Patente patente
-){}
+    Patente patente,
+    UUID equipeUUID,
+    String equipeNome
+) {}
