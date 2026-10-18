@@ -57,4 +57,14 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(exception.getStatusCode()).body(problema);
     }
+
+    @ExceptionHandler(ConflitoEstadoOcorrenciaException.class)
+    public ProblemDetail tratarConflitoEstado(ConflitoEstadoOcorrenciaException exception) {
+        ProblemDetail problema = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+
+        problema.setTitle("Conflito no estado da ocorrência");
+        problema.setDetail(exception.getMessage());
+
+        return problema;
+    }
 }
