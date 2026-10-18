@@ -2,6 +2,7 @@ package com.scarfox.jack.domain.entity;
 
 import com.scarfox.jack.domain.enums.Status;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,6 +16,11 @@ import java.util.*;
 @Entity
 @Table(name = "ocorrencias")
 public class Ocorrencia {
+    @Version
+    @Column(name = "versao", nullable = false)
+    @Setter(AccessLevel.NONE)
+    private Long versao;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID uuid;

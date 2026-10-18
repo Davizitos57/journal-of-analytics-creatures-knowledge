@@ -2,6 +2,7 @@ package com.scarfox.jack.exception;
 
 import java.util.stream.Collectors;
 
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -64,6 +65,16 @@ public class GlobalExceptionHandler {
 
         problema.setTitle("Conflito no estado da ocorrência");
         problema.setDetail(exception.getMessage());
+
+        return problema;
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ProblemDetail tratarConflitoConcorrencia(OptimisticLockingFailureException exception) {
+        ProblemDetail problema = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+
+        problema.setTitle("Conflito de concorrência");
+        problema.setDetail("A ocorrência foi modificada por outra operação. Consulte os dados atualizados e tente novamente.");
 
         return problema;
     }
