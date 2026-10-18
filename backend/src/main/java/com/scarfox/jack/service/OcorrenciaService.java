@@ -2,10 +2,14 @@ package com.scarfox.jack.service;
 
 import com.scarfox.jack.repository.AgenteRepository;
 import com.scarfox.jack.repository.CriaturaRepository;
+import com.scarfox.jack.repository.HistoricoOcorrenciaRepository;
 import com.scarfox.jack.repository.LocalRepository;
 
 import com.scarfox.jack.repository.RitualRepository;
+
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -15,6 +19,7 @@ import com.scarfox.jack.domain.DTOs.AtualizarOcorrenciaDTO;
 import com.scarfox.jack.domain.DTOs.CadastroOcorrenciaDTO;
 import com.scarfox.jack.domain.entity.Agente;
 import com.scarfox.jack.domain.entity.Criatura;
+import com.scarfox.jack.domain.entity.HistoricoOcorrencia;
 import com.scarfox.jack.domain.entity.Local;
 import com.scarfox.jack.domain.entity.Ocorrencia;
 import com.scarfox.jack.domain.entity.Ritual;
@@ -26,18 +31,20 @@ import com.scarfox.jack.repository.OcorrenciaRepository;
 @Service 
 public class OcorrenciaService {
 
+    private final HistoricoOcorrenciaRepository historicoOcorrenciaRepository;
     private final CriaturaRepository criaturaRepository;
     private final RitualRepository ritualRepository;
     private final LocalRepository localRepository;
     private final AgenteRepository agenteRepository;
     private final OcorrenciaRepository ocorrenciaRepository;
 
-    public OcorrenciaService(OcorrenciaRepository ocorrenciaRepository, AgenteRepository agenteRepository, LocalRepository localRepository, RitualRepository ritualRepository, CriaturaRepository criaturaRepository){
+    public OcorrenciaService(OcorrenciaRepository ocorrenciaRepository, AgenteRepository agenteRepository, LocalRepository localRepository, RitualRepository ritualRepository, CriaturaRepository criaturaRepository, HistoricoOcorrenciaRepository historicoOcorrenciaRepository, HistoricoOcorrenciaRepository historicoOcorrenciaRepository_1){
         this.agenteRepository = agenteRepository;
         this.localRepository = localRepository;
         this.ocorrenciaRepository = ocorrenciaRepository;
         this.ritualRepository = ritualRepository;
         this.criaturaRepository = criaturaRepository;
+        this.historicoOcorrenciaRepository = historicoOcorrenciaRepository;
     }
 
     @Transactional 
@@ -82,7 +89,9 @@ public class OcorrenciaService {
             local
         );
 
-        return ocorrenciaRepository.save(ocorrencia);
+        Ocorrencia salva = ocorrenciaRepository.save(ocorrencia);
+        registrarAlteracao(salva, agente, "criacao", null, "Ocorrência registrada");
+        return salva;
     }
 
     @Transactional(readOnly = true)
@@ -107,7 +116,7 @@ public class OcorrenciaService {
     }
 
     @Transactional
-    public Ocorrencia atualizar(UUID uuid, AtualizarOcorrenciaDTO dto) {
+    public Ocorrencia atualizar(UUID uuid, AtualizarOcorrenciaDTO dto, String keycloakId) {
         if (dto == null) {
             throw new IllegalArgumentException("Os dados da atualização devem ser informados.");
         }
@@ -128,48 +137,89 @@ public class OcorrenciaService {
                 throw new ConflitoEstadoOcorrenciaException("A ocorrência está arquivada. Somente sua reabertura é permitida.");
             }
         }
+
+        Agente agente = buscarAgenteAutenticado(keycloakId);
+
+        String tituloAnterior = ocorrencia.getTitulo();
+        String descricaoAnterior = ocorrencia.getDescricao();
+        LocalDateTime dataAnterior = ocorrencia.getDataHoraOcorrencia();
+        UUID localAnterior = ocorrencia.getLocal().getUuid();
+        Status statusAnterior = ocorrencia.getStatus();
+        Integer mortosAnterior = ocorrencia.getNumMortos();
+        Integer feridosAnterior = ocorrencia.getNumFeridos();
+
         updateData(ocorrencia, dto);
+
+        registrarSeAlterado(ocorrencia, agente, "titulo", tituloAnterior, ocorrencia.getTitulo());
+        registrarSeAlterado(ocorrencia, agente, "descricao", descricaoAnterior, ocorrencia.getDescricao());
+        registrarSeAlterado(ocorrencia, agente, "dataHoraOcorrencia", dataAnterior, ocorrencia.getDataHoraOcorrencia());
+        registrarSeAlterado(ocorrencia, agente, "local", localAnterior, ocorrencia.getLocal().getUuid());
+        registrarSeAlterado(ocorrencia, agente, "status", statusAnterior, ocorrencia.getStatus());
+        registrarSeAlterado(ocorrencia, agente, "numMortos", mortosAnterior, ocorrencia.getNumMortos());
+        registrarSeAlterado(ocorrencia, agente, "numFeridos", feridosAnterior, ocorrencia.getNumFeridos());
+
         return ocorrencia;
     }
 
     @Transactional
-    public void associarCriatura(UUID uuidOcorrencia, UUID uuidCriatura) {
+    public void associarCriatura(UUID uuidOcorrencia, UUID uuidCriatura, String keycloakId) {
         Ocorrencia ocorrencia = buscarPorID(uuidOcorrencia);
         validarEdicao(ocorrencia);
         Criatura criatura = criaturaRepository.findById(uuidCriatura)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma criatura encontrada com o ID: " + uuidCriatura));
 
-        ocorrencia.getCriaturas().add(criatura);
+        if (ocorrencia.getCriaturas().add(criatura)) {
+            Agente agente = buscarAgenteAutenticado(keycloakId);
+            registrarAlteracao(ocorrencia, agente, "criatura", null, criatura.getNome() + " (" + criatura.getUuid() + ")"
+            );
+        }
     }
 
     @Transactional
-    public void desassociarCriatura(UUID uuidOcorrencia, UUID uuidCriatura) {
+    public void desassociarCriatura(UUID uuidOcorrencia, UUID uuidCriatura, String keycloakId) {
         Ocorrencia ocorrencia = buscarPorID(uuidOcorrencia);
         validarEdicao(ocorrencia);
         Criatura criatura = criaturaRepository.findById(uuidCriatura)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma criatura encontrada com o ID: " + uuidCriatura));
 
-        ocorrencia.getCriaturas().remove(criatura);
+        if (ocorrencia.getCriaturas().remove(criatura)) {
+            Agente agente = buscarAgenteAutenticado(keycloakId);
+            registrarAlteracao(ocorrencia, agente, "criatura", criatura.getNome() + " (" + criatura.getUuid() + ")", null);
+        }
     }
 
     @Transactional
-    public void associarRitual(UUID uuidOcorrencia, UUID uuidRitual) {
+    public void associarRitual(UUID uuidOcorrencia, UUID uuidRitual, String keycloakId) {
         Ocorrencia ocorrencia = buscarPorID(uuidOcorrencia);
         validarEdicao(ocorrencia);
         Ritual ritual = ritualRepository.findById(uuidRitual)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum ritual encontrado com o ID: " + uuidRitual));
 
-        ocorrencia.getRituais().add(ritual);
+        if (ocorrencia.getRituais().add(ritual)) {
+            Agente agente = buscarAgenteAutenticado(keycloakId);
+            registrarAlteracao(ocorrencia, agente, "ritual", null, ritual.getNome() + " (" + ritual.getUuid() + ")");
+        }
     }
 
     @Transactional
-    public void desassociarRitual(UUID uuidOcorrencia, UUID uuidRitual) {
+    public void desassociarRitual(UUID uuidOcorrencia, UUID uuidRitual, String keycloakId) {
         Ocorrencia ocorrencia = buscarPorID(uuidOcorrencia);
         validarEdicao(ocorrencia);
         Ritual ritual = ritualRepository.findById(uuidRitual)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum ritual encontrado com o ID: " + uuidRitual));
 
-        ocorrencia.getRituais().remove(ritual);
+        if (ocorrencia.getRituais().remove(ritual)) {
+            Agente agente = buscarAgenteAutenticado(keycloakId);
+            registrarAlteracao(ocorrencia, agente, "ritual", ritual.getNome() + " (" + ritual.getUuid() + ")", null);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<HistoricoOcorrencia> listarHistorico(UUID ocorrenciaUUID) {
+        if (!ocorrenciaRepository.existsById(ocorrenciaUUID)) {
+            throw new RecursoNaoEncontradoException("Nenhuma ocorrência encontrada com o ID: " + ocorrenciaUUID);
+        }
+        return historicoOcorrenciaRepository.findByOcorrencia_UuidOrderByDataHoraDesc(ocorrenciaUUID);
     }
 
     private void validarEdicao(Ocorrencia ocorrencia) {
@@ -220,5 +270,26 @@ public class OcorrenciaService {
             }
             ocorrencia.setNumFeridos(dto.getNumFeridos());
         }
+    }
+
+    private Agente buscarAgenteAutenticado(String keycloakId) {
+        if (keycloakId == null || keycloakId.isBlank()) {
+            throw new IllegalArgumentException("O identificador do agente deve ser informado.");
+        }
+        return agenteRepository.findByKeycloakId(keycloakId)
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado para o usuário autenticado."));
+    }
+
+    private void registrarAlteracao(Ocorrencia ocorrencia, Agente agente, String campo, String valorAnterior, String valorNovo) {
+        HistoricoOcorrencia historico = new HistoricoOcorrencia(campo, valorAnterior, valorNovo, agente, ocorrencia);
+        historicoOcorrenciaRepository.save(historico);
+    }   
+    
+    private void registrarSeAlterado(Ocorrencia ocorrencia, Agente agente, String campo, Object valorAnterior, Object valorNovo) {
+        if (Objects.equals(valorAnterior, valorNovo)) {
+            return;
+        }
+        registrarAlteracao(ocorrencia, agente, campo, Objects.toString(valorAnterior, null), Objects.toString(valorNovo, null)
+        );
     }
 }

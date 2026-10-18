@@ -2,11 +2,14 @@ package com.scarfox.jack.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.scarfox.jack.domain.DTOs.AtualizarOcorrenciaDTO;
 import com.scarfox.jack.domain.DTOs.CadastroOcorrenciaDTO;
+import com.scarfox.jack.domain.DTOs.RespostaHistoricoOcorrenciaDTO;
 import com.scarfox.jack.domain.DTOs.RespostaOcorrenciaDTO;
 import com.scarfox.jack.domain.DTOs.ResumoEntidadeDTO;
+import com.scarfox.jack.domain.entity.HistoricoOcorrencia;
 import com.scarfox.jack.domain.entity.Ocorrencia;
 import com.scarfox.jack.domain.enums.Status;
 import com.scarfox.jack.service.OcorrenciaService;
@@ -73,34 +76,53 @@ public class OcorrenciaController {
         return ResponseEntity.ok(resposta);
     }
 
-    @PatchMapping("/{UUIDOcorrencias}")
-    public ResponseEntity<RespostaOcorrenciaDTO> atualizar(@PathVariable UUID UUIDOcorrencias, @Valid @RequestBody AtualizarOcorrenciaDTO ocorrenciaDTO){
-        Ocorrencia ocorrencia = ocorrenciaService.atualizar(UUIDOcorrencias, ocorrenciaDTO);
+    @GetMapping("/{uuid}/historico")
+    public ResponseEntity<List<RespostaHistoricoOcorrenciaDTO>> listarHistorico(@PathVariable UUID uuid) {
+        List<HistoricoOcorrencia> historicos = ocorrenciaService.listarHistorico(uuid);
+        List<RespostaHistoricoOcorrenciaDTO> resposta = historicos.stream().map(this::converterHistoricoParaResposta).toList();
+        return ResponseEntity.ok(resposta);
+    }
+
+    @PatchMapping("/{uuidOcorrencia}")
+    public ResponseEntity<RespostaOcorrenciaDTO> atualizar(@PathVariable UUID uuidOcorrencia, @Valid @RequestBody AtualizarOcorrenciaDTO dto, @AuthenticationPrincipal Jwt jwt) {
+        obterKeycloakId(jwt);
+        Ocorrencia ocorrencia = ocorrenciaService.atualizar(uuidOcorrencia, dto, jwt.getSubject());
         return ResponseEntity.ok(converterParaResposta(ocorrencia));
     }
 
     @PostMapping("/{uuidOcorrencia}/criaturas/{uuidCriatura}")
-    public ResponseEntity<Void> associarCriatura(@PathVariable UUID uuidOcorrencia, @PathVariable UUID uuidCriatura) {
-        ocorrenciaService.associarCriatura(uuidOcorrencia, uuidCriatura);
+    public ResponseEntity<Void> associarCriatura(@PathVariable UUID uuidOcorrencia, @PathVariable UUID uuidCriatura, @AuthenticationPrincipal Jwt jwt) {
+        obterKeycloakId(jwt);
+        ocorrenciaService.associarCriatura(uuidOcorrencia, uuidCriatura, jwt.getSubject());
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{uuidOcorrencia}/criaturas/{uuidCriatura}")
-    public ResponseEntity<Void> desassociarCriatura(@PathVariable UUID uuidOcorrencia, @PathVariable UUID uuidCriatura) {
-        ocorrenciaService.desassociarCriatura(uuidOcorrencia, uuidCriatura);
+    public ResponseEntity<Void> desassociarCriatura(@PathVariable UUID uuidOcorrencia, @PathVariable UUID uuidCriatura, @AuthenticationPrincipal Jwt jwt) {
+        obterKeycloakId(jwt);
+        ocorrenciaService.desassociarCriatura(uuidOcorrencia, uuidCriatura, jwt.getSubject());
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{uuidOcorrencia}/rituais/{uuidRitual}")
-    public ResponseEntity<Void> associarRitual(@PathVariable UUID uuidOcorrencia,@PathVariable UUID uuidRitual) {
-        ocorrenciaService.associarRitual(uuidOcorrencia, uuidRitual);
+    public ResponseEntity<Void> associarRitual(@PathVariable UUID uuidOcorrencia,@PathVariable UUID uuidRitual, @AuthenticationPrincipal Jwt jwt) {
+        obterKeycloakId(jwt);
+        ocorrenciaService.associarRitual(uuidOcorrencia, uuidRitual, jwt.getSubject());
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{uuidOcorrencia}/rituais/{uuidRitual}")
-    public ResponseEntity<Void> desassociarRitual(@PathVariable UUID uuidOcorrencia, @PathVariable UUID uuidRitual) {
-        ocorrenciaService.desassociarRitual(uuidOcorrencia, uuidRitual);
+    public ResponseEntity<Void> desassociarRitual(@PathVariable UUID uuidOcorrencia, @PathVariable UUID uuidRitual, @AuthenticationPrincipal Jwt jwt) {
+        obterKeycloakId(jwt);
+        ocorrenciaService.desassociarRitual(uuidOcorrencia, uuidRitual, jwt.getSubject());
         return ResponseEntity.noContent().build();
+    }
+
+    private String obterKeycloakId(Jwt jwt){
+        if (jwt == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"É necessário estar autenticado para realizar esta operação.");
+        }
+        return jwt.getSubject();
     }
 
     private RespostaOcorrenciaDTO converterParaResposta(Ocorrencia ocorrencia) {
@@ -129,5 +151,17 @@ public class OcorrenciaController {
                 rituais
         );
     }
-    
+
+    private RespostaHistoricoOcorrenciaDTO converterHistoricoParaResposta(HistoricoOcorrencia historico) {
+        return new RespostaHistoricoOcorrenciaDTO(
+                historico.getUuid(),
+                historico.getDataHora(),
+                historico.getCampoAlterado(),
+                historico.getValorAnterior(),
+                historico.getValorNovo(),
+                historico.getAgente().getUuid(),
+                historico.getAgente().getNome(),
+                historico.getOcorrencia().getUuid()
+        );
+    }
 }
