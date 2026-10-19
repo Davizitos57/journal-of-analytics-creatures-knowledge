@@ -82,6 +82,16 @@ public class KeycloakAdminService {
         return location.getPath().substring(location.getPath().lastIndexOf('/') + 1);
     }
 
+    public void alterarStatusUsuario(String keycloakId, boolean habilitado) {
+        restClient.put()
+                .uri("/admin/realms/{realm}/users/{id}", properties.realm(), keycloakId)
+                .headers(headers -> headers.setBearerAuth(obterTokenAdministrativo()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("enabled", habilitado))
+                .retrieve()
+                .toBodilessEntity();
+    }
+
     public void excluirUsuario(String keycloakId) {
         restClient.delete()
             .uri("/admin/realms/{realm}/users/{id}", properties.realm(), keycloakId)

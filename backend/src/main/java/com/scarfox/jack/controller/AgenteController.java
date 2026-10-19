@@ -71,6 +71,12 @@ public class AgenteController {
         agenteService.associarEquipe(uuidAgente, dto.equipeId());
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{uuidAgente}/reativar")
+    public ResponseEntity<Void> reativarAgente(@PathVariable UUID uuidAgente) {
+        agenteService.reativarAgente(uuidAgente);
+        return ResponseEntity.noContent().build();
+    }
     
     @DeleteMapping("/{uuidAgente}/equipe")
     public ResponseEntity<Void> desvincularEquipe(@PathVariable UUID uuidAgente) {
@@ -80,7 +86,7 @@ public class AgenteController {
 
     @DeleteMapping("/{uuidAgente}")
     public ResponseEntity<Void> deletar(@PathVariable UUID uuidAgente){
-        agenteService.deletarAgente(uuidAgente);
+        agenteService.desativarAgente(uuidAgente);
         return ResponseEntity.noContent().build();
     }
 

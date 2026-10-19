@@ -3,6 +3,7 @@ package com.scarfox.jack.domain.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.scarfox.jack.domain.enums.Patente;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -43,6 +44,10 @@ public class Agente {
     @Enumerated(EnumType.STRING)
     private Patente patente;
 
+    @Setter(AccessLevel.NONE)
+    @Column(nullable = false)
+    private boolean ativo = true;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "equipe_uuid")
     private Equipe equipe;
@@ -50,6 +55,14 @@ public class Agente {
     @JsonIgnore
     @OneToMany(mappedBy = "agente")
     private List<HistoricoOcorrencia> historicoOcorrencias = new ArrayList<>();
+
+    public void desativar() {
+        this.ativo = false;
+    }
+
+    public void reativar() {
+        this.ativo = true;
+    }
 
     public Agente(String nome, String email, String nacionalidade, LocalDate dataNascimento, Patente patente) {
         this.nome = nome;

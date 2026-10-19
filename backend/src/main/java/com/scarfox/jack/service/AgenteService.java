@@ -77,19 +77,18 @@ public class AgenteService {
 
     @Transactional(readOnly = true)
     public List<Agente> listarTodos(){
-        return agenteRepository.findAll();
+        return agenteRepository.findByAtivoTrue();
     }
 
     @Transactional(readOnly = true)
     public Agente buscarPorId(UUID id){
-        return agenteRepository.findById(id)
+        return agenteRepository.findByUuidAndAtivoTrue(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + id));
     }
 
     @Transactional(readOnly = true)
     public List<Agente> buscarPorPatente(Patente patente){
-        return agenteRepository.findByPatente(patente)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Não há agentes cadastrados com essa patente: " + patente));
+        return agenteRepository.findByPatenteAndAtivoTrue(patente); 
     }
 
     @Transactional
@@ -97,7 +96,7 @@ public class AgenteService {
         if (agenteDTO == null) {
             throw new IllegalArgumentException("Os dados do agente devem ser informados.");
         }
-        Agente agente = agenteRepository.findById(agenteUUID)
+        Agente agente = agenteRepository.findByUuidAndAtivoTrue(agenteUUID)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + agenteUUID));
 
         atualizarDados(agente, agenteDTO);
@@ -106,7 +105,7 @@ public class AgenteService {
 
     @Transactional 
     public Agente associarEquipe(UUID agenteUUID, UUID equipeUUID){
-        Agente agente = agenteRepository.findById(agenteUUID)
+        Agente agente = agenteRepository.findByUuidAndAtivoTrue(agenteUUID)
                             .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + agenteUUID));
         Equipe equipe = equipeRepository.findById(equipeUUID) 
                             .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma equipe encontrada com o ID: " + equipeUUID));
@@ -121,16 +120,37 @@ public class AgenteService {
 
     @Transactional
     public void desvincularEquipe(UUID agenteUUID){
-        Agente agente = agenteRepository.findById(agenteUUID)
+        Agente agente = agenteRepository.findByUuidAndAtivoTrue(agenteUUID)
                             .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + agenteUUID));
         agente.setEquipe(null);
     }
 
     @Transactional 
-    public void deletarAgente(UUID agenteUUID){
+    public void reativarAgente(UUID agenteUUID){
         Agente agente = agenteRepository.findById(agenteUUID)
                             .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + agenteUUID));
-        agenteRepository.delete(agente);
+        if (agente.isAtivo()) {
+            return;
+        }
+        if (agente.getKeycloakId() == null) {
+            throw new IllegalStateException("O agente não possui vínculo com o Keycloak.");
+        }
+        keycloakAdminService.alterarStatusUsuario(agente.getKeycloakId(), true);
+        agente.reativar();
+    }
+    
+    @Transactional 
+    public void desativarAgente(UUID agenteUUID){
+        Agente agente = agenteRepository.findById(agenteUUID)
+                            .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + agenteUUID));
+        if (!agente.isAtivo()) {
+            return;
+        }
+        if (agente.getKeycloakId() == null) {
+            throw new IllegalStateException("O agente não possui vínculo com o Keycloak.");
+        }
+        keycloakAdminService.alterarStatusUsuario(agente.getKeycloakId(), false);
+        agente.desativar();
     }
 
     private void atualizarDados(Agente agente, AtualizarAgenteDTO agenteDTO) {
@@ -140,15 +160,12 @@ public class AgenteService {
             }
             agente.setNome(agenteDTO.getNome().trim());
         }
-
         if (agenteDTO.informouNacionalidade()) {
             agente.setNacionalidade(agenteDTO.getNacionalidade() == null ? null : agenteDTO.getNacionalidade().trim());
         }
-
         if (agenteDTO.informouDataNascimento()) {
             agente.setDataNascimento(agenteDTO.getDataNascimento());
         }
-
         if (agenteDTO.informouFotoUrl()) {
             agente.setFotoUrl(agenteDTO.getFotoUrl() == null ? null : agenteDTO.getFotoUrl().trim());
         }
