@@ -7,8 +7,11 @@ import com.scarfox.jack.domain.entity.Equipe;
 import com.scarfox.jack.exception.RecursoNaoEncontradoException;
 import com.scarfox.jack.repository.AgenteRepository;
 import com.scarfox.jack.repository.EquipeRepository;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,12 +45,12 @@ public class EquipeService {
 
     @Transactional(readOnly = true)
     public List<Equipe> listarTodas(){
-        return equipeRepository.findAll();
+        return equipeRepository.findByAtivoTrue();
     }
 
     @Transactional(readOnly = true)
     public Equipe buscarPorId(UUID id){
-        return equipeRepository.findById(id)
+        return equipeRepository.findByUuidAndAtivoTrue(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma equipe encontrada com o ID: " + id));
     }
 
@@ -56,7 +59,7 @@ public class EquipeService {
         if (nome == null || nome.trim().length() < 2){
             return List.of();
         }
-        return equipeRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(nome.trim());
+        return equipeRepository.findByNomeContainingIgnoreCaseAndAtivoTrueOrderByNomeAsc(nome.trim());
     }
 
     @Transactional
@@ -65,7 +68,7 @@ public class EquipeService {
             throw new IllegalArgumentException("Os dados da equipe devem ser informados.");
         }
 
-        Equipe equipeAtual = equipeRepository.findById(uuid)
+        Equipe equipeAtual = equipeRepository.findByUuidAndAtivoTrue(uuid)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma equipe encontrada com o ID: " + uuid));
 
         updateData(equipeAtual, equipeDTO);
@@ -74,25 +77,44 @@ public class EquipeService {
 
     @Transactional(readOnly = true)
     public List<Agente> listarAgentesDaEquipe(UUID equipeUUID) {
-        if (!equipeRepository.existsById(equipeUUID)) {
-            throw new RecursoNaoEncontradoException("Nenhuma equipe encontrada com o ID: " + equipeUUID);
-        }
-        return agenteRepository.findByEquipeUuid(equipeUUID);
+        equipeRepository.findByUuidAndAtivoTrue(equipeUUID)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma equipe ativa encontrada com o ID: " + equipeUUID));
+        return agenteRepository.findByEquipeUuidAndAtivoTrue(equipeUUID);
     }
 
     @Transactional(readOnly = true)
     public long contarAgentes(UUID equipeUUID) {
-        return agenteRepository.countByEquipeUuid(equipeUUID);
+        equipeRepository.findByUuidAndAtivoTrue(equipeUUID)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma equipe ativa encontrada com o ID: " + equipeUUID));
+        return agenteRepository.countByEquipeUuidAndAtivoTrue(equipeUUID);
     }
 
     @Transactional
-    public void deletar(UUID uuid) {
-        Equipe equipe = equipeRepository.findById(uuid).orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma equipe encontrada com o ID: " + uuid));
-        if (!equipe.getAgentes().isEmpty()) {
-            throw new IllegalArgumentException("Não é possível excluir uma equipe que possui agentes associados.");
+    public void reativarEquipe(UUID uuid) {
+        Equipe equipe = equipeRepository.findById(uuid)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma equipe encontrada com o ID: " + uuid));
+        
+        if (equipe.isAtivo()) {
+            return;
         }
-        equipeRepository.delete(equipe);
+        equipe.reativar();
     }
+
+    @Transactional
+    public void desativar(UUID uuid) {
+        Equipe equipe = equipeRepository.findById(uuid)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma equipe encontrada com o ID: " + uuid));
+        if (!equipe.isAtivo()) {
+            return;
+        }
+        long agentesAtivos = agenteRepository.countByEquipeUuidAndAtivoTrue(uuid);
+
+        if (agentesAtivos > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Não é possível desativar uma equipe que possui agentes ativos associados.");
+        }
+        equipe.desativar();
+    }
+
 
     private void updateData(Equipe atual, AtualizarEquipeDTO equipeDTO) {
         if (equipeDTO.informouNome()) {

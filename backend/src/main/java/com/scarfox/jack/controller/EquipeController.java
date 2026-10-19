@@ -63,9 +63,15 @@ public class EquipeController {
         return ResponseEntity.ok(converterParaResposta(equipe));
     }
 
+    @PatchMapping("/{uuid}/reativar")
+    public ResponseEntity<Void> reativarEquipe(@PathVariable UUID uuid) {
+        equipeService.reativarEquipe(uuid);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{uuid}")
     public ResponseEntity<Void> deletarEquipe(@PathVariable UUID uuid){
-        equipeService.deletar(uuid);
+        equipeService.desativar(uuid);
         return ResponseEntity.noContent().build();
     }
 
