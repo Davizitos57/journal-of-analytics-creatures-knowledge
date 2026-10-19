@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.scarfox.jack.domain.DTOs.AtualizarAgenteDTO;
 import com.scarfox.jack.domain.DTOs.CadastroAgenteDTO;
@@ -107,7 +109,7 @@ public class AgenteService {
     public Agente associarEquipe(UUID agenteUUID, UUID equipeUUID){
         Agente agente = agenteRepository.findByUuidAndAtivoTrue(agenteUUID)
                             .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhum agente encontrado com o ID: " + agenteUUID));
-        Equipe equipe = equipeRepository.findById(equipeUUID) 
+        Equipe equipe = equipeRepository.findByUuidAndAtivoTrue(equipeUUID) 
                             .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma equipe encontrada com o ID: " + equipeUUID));
 
         if (agente.getEquipe() != null && agente.getEquipe().getUuid().equals(equipeUUID)) {
@@ -134,6 +136,9 @@ public class AgenteService {
         }
         if (agente.getKeycloakId() == null) {
             throw new IllegalStateException("O agente não possui vínculo com o Keycloak.");
+        }
+        if (agente.getEquipe() != null && !agente.getEquipe().isAtivo()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Não é possível reativar um agente vinculado a uma equipe inativa. Reative a equipe primeiro.");
         }
         keycloakAdminService.alterarStatusUsuario(agente.getKeycloakId(), true);
         agente.reativar();
